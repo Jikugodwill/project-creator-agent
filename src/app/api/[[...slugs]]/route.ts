@@ -2,7 +2,7 @@ import { swagger } from "@elysiajs/swagger";
 import { getMainnetRpcProvider, view } from "@near-js/client";
 import { Elysia } from "elysia";
 
-export enum RegistrationStatus {
+enum RegistrationStatus {
   Approved = "Approved",
   Rejected = "Rejected",
   Pending = "Pending",
