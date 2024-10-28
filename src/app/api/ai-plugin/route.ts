@@ -24,7 +24,7 @@ export async function GET() {
     "x-mb": {
       "account-id": key.accountId,
       assistant: {
-        name: "Potlock Project Agent",
+        name: "Potlock Project Genie",
         description:
           "Assistant for using the Potlock API to create projects and retrieve project data.",
         instructions:
