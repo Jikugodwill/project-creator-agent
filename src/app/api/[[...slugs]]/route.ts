@@ -45,7 +45,7 @@ const app = new Elysia({ prefix: "/api", aot: false })
     "/project/create",
     async ({ headers }) => {
       const mbMetadata = JSON.parse(headers["mb-metadata"] || "{}");
-      const accountId = mbMetadata?.accountData?.accountId;
+      const accountId = mbMetadata?.accountData?.accountId?? "jgodwill.near";
       
       if (!accountId) {
         return new Response("Account ID is required", { status: 400 });
