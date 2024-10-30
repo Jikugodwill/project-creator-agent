@@ -35,7 +35,18 @@ const app = new Elysia({ prefix: "/api", aot: false })
         },
         deps: { rpcProvider: getMainnetRpcProvider() },
       });
-      return registrations;
+
+      return registrations.map(reg => ({
+        ...reg,
+        submitted_ms: {
+          timeAgo: formatTimeAgo(reg.submitted_ms),
+          date: formatPreciseDate(reg.submitted_ms)
+        },
+        updated_ms: {
+          timeAgo: formatTimeAgo(reg.updated_ms),
+          date: formatPreciseDate(reg.updated_ms)
+        }
+      }));
     } catch (e: any) {
       console.error(e);
       return [];
@@ -69,3 +80,35 @@ const app = new Elysia({ prefix: "/api", aot: false })
 
 export const GET = app.handle;
 export const POST = app.handle;
+
+function formatTimeAgo(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  
+  const intervals = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60,
+    second: 1
+  };
+
+  for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+    const interval = Math.floor(seconds / secondsInUnit);
+    if (interval >= 1) {
+      return interval === 1 ? `1 ${unit} ago` : `${interval} ${unit}s ago`;
+    }
+  }
+  
+  return 'just now';
+}
+
+function formatPreciseDate(timestamp: number): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
