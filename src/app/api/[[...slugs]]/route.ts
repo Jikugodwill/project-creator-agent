@@ -3,6 +3,13 @@ import { swagger } from "@elysiajs/swagger";
 import { getMainnetRpcProvider, view } from "@near-js/client";
 import { Elysia } from "elysia";
 
+import {
+  formatTimeAgo,
+  formatPreciseDate,
+  getSocialDataFormat,
+} from "@/utils";
+import { NEARSocialUserProfile } from "@/common/social";
+
 enum RegistrationStatus {
   Approved = "Approved",
   Rejected = "Rejected",
@@ -10,6 +17,10 @@ enum RegistrationStatus {
   Graylisted = "Graylisted",
   Blacklisted = "Blacklisted",
   Unregistered = "Unregistered",
+}
+
+interface SocialDataType {
+  args: any; // Replace 'any' with the actual type if known
 }
 export interface Registration {
   id: string;
@@ -25,8 +36,13 @@ export interface Registration {
 
 const app = new Elysia({ prefix: "/api", aot: false })
   .use(swagger())
-  .get("/project/:projectId", async ({ params: { projectId } }) => {
+  .get("/project/:projectId", async ({ params: { projectId }, headers }) => {
     try {
+      console.log("1. Starting request for projectId:", projectId);
+      const mbMetadata = JSON.parse(headers["mb-metadata"] || "{}");
+      const accountId = mbMetadata?.accountData?.accountId ?? projectId;
+      console.log("2. AccountId:", accountId);
+
       const registrations = await view<Registration[]>({
         account: "lists.potlock.near",
         method: "get_registrations_for_registrant",
@@ -35,80 +51,67 @@ const app = new Elysia({ prefix: "/api", aot: false })
         },
         deps: { rpcProvider: getMainnetRpcProvider() },
       });
+      console.log("3. Registrations:", registrations);
 
-      return registrations.map(reg => ({
-        ...reg,
-        submitted_ms: {
-          timeAgo: formatTimeAgo(reg.submitted_ms),
-          date: formatPreciseDate(reg.submitted_ms)
-        },
-        updated_ms: {
-          timeAgo: formatTimeAgo(reg.updated_ms),
-          date: formatPreciseDate(reg.updated_ms)
-        }
-      }));
+      const results = await Promise.all(
+        registrations.map(async (reg) => {
+          console.log("4. Processing registration:", reg.id);
+          const profileData = await view<Record<string, { profile: NEARSocialUserProfile }>>({
+            account: "social.near",
+            method: "get",
+            args: {
+              keys: [`${accountId}/profile/**`]
+            },
+            deps: { rpcProvider: getMainnetRpcProvider() }
+          });
+
+          const profile = profileData?.[accountId]?.profile;
+
+          console.log("5. Profile data for reg:", reg.id, profile);
+
+          return {
+            ...reg,
+            submitted_ms: {
+              timeAgo: formatTimeAgo(reg.submitted_ms),
+              date: formatPreciseDate(reg.submitted_ms),
+            },
+            updated_ms: {
+              timeAgo: formatTimeAgo(reg.updated_ms),
+              date: formatPreciseDate(reg.updated_ms),
+            },
+            profile_data: profile,
+          };
+        })
+      );
+      console.log("6. Final results:", results);
+      return results;
     } catch (e: any) {
-      console.error(e);
+      console.error("Error in /project/:projectId:", e);
       return [];
     }
   })
-  .post(
-    "/project/create",
-    async ({ headers }) => {
-      const mbMetadata = JSON.parse(headers["mb-metadata"] || "{}");
-      const accountId = mbMetadata?.accountData?.accountId?? "jgodwill.near";
-      
-      if (!accountId) {
-        return new Response("Account ID is required", { status: 400 });
-      }
+  .post("/project/create", async ({ headers }) => {
+    const mbMetadata = JSON.parse(headers["mb-metadata"] || "{}");
+    const accountId = mbMetadata?.accountData?.accountId ?? "jgodwill.near";
 
-      try {
-        const result = await CreateOrUpdateProjectHandler(accountId);
-        
-        if (!result?.success) {
-          return new Response(result?.error || "Unknown error", { status: 500 });
-        }
-
-        return new Response("Project created successfully", { status: 200 });
-      } catch (error) {
-        console.error("Error creating project:", error);
-        return new Response("Error creating project", { status: 500 });
-      }
+    if (!accountId) {
+      return new Response("Account ID is required", { status: 400 });
     }
-  )
+
+    try {
+      const result = await CreateOrUpdateProjectHandler(accountId);
+
+      if (!result?.success) {
+        return new Response(result?.error || "Unknown error", { status: 500 });
+      }
+
+      return new Response("Project created successfully", { status: 200 });
+    } catch (error) {
+      console.error("Error creating project:", error);
+      return new Response("Error creating project", { status: 500 });
+    }
+  })
   .compile();
 
 export const GET = app.handle;
 export const POST = app.handle;
-
-function formatTimeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  
-  const intervals = {
-    year: 31536000,
-    month: 2592000,
-    week: 604800,
-    day: 86400,
-    hour: 3600,
-    minute: 60,
-    second: 1
-  };
-
-  for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-    const interval = Math.floor(seconds / secondsInUnit);
-    if (interval >= 1) {
-      return interval === 1 ? `1 ${unit} ago` : `${interval} ${unit}s ago`;
-    }
-  }
-  
-  return 'just now';
-}
-
-function formatPreciseDate(timestamp: number): string {
-  const date = new Date(timestamp);
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
-}
