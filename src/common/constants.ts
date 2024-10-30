@@ -9,7 +9,7 @@ export const ICONS_ASSET_ENDPOINT_URL = "/assets/icons";
 export const IMAGES_ASSET_ENDPOINT_URL = "/assets/images";
 
 export const NETWORK = (process.env.NEXT_PUBLIC_NETWORK?.toLowerCase() ||
-  "testnet") as Network;
+  "mainnet") as Network;
 
 export const BLOCKCHAIN_EXPLORER_TX_ENDPOINT_URL =
   NETWORK === "mainnet"

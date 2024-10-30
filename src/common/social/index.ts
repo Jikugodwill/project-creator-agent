@@ -2,7 +2,7 @@ import { naxiosInstance } from "@/utils/naxiosInstance";
 import { StorageCache } from "@wpdas/naxios";
 import { Network } from "@wpdas/naxios";
 
-const NETWORK = (process.env.NEAR_ENV?.toLowerCase() || "testnet") as Network;
+const NETWORK = (process.env.NEAR_ENV?.toLowerCase() || "mainnet") as Network;
 
 const SOCIAL_DB_CONTRACT_ID =
   NETWORK === "mainnet" ? "social.near" : "v1.social08.testnet";
@@ -164,7 +164,8 @@ export const getSocialData = async <R>({ path }: { path: string }) => {
         },
       },
     });
-
+    
+    console.log({ socialData: response });
     return response;
   } catch (e) {
     console.error("getSocialData:", e);
