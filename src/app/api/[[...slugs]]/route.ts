@@ -3,11 +3,10 @@ import { swagger } from "@elysiajs/swagger";
 import { getMainnetRpcProvider, view } from "@near-js/client";
 import { Elysia } from "elysia";
 
-import {
-  formatTimeAgo,
-  formatPreciseDate,
-  getSocialDataFormat,
-} from "@/utils";
+const key = JSON.parse(process.env.BITTE_KEY || "{}");
+const config = JSON.parse(process.env.BITTE_CONFIG || "{}");
+
+import { formatTimeAgo, formatPreciseDate, getSocialDataFormat } from "@/utils";
 import { NEARSocialUserProfile } from "@/common/social";
 
 enum RegistrationStatus {
@@ -56,13 +55,15 @@ const app = new Elysia({ prefix: "/api", aot: false })
       const results = await Promise.all(
         registrations.map(async (reg) => {
           console.log("4. Processing registration:", reg.id);
-          const profileData = await view<Record<string, { profile: NEARSocialUserProfile }>>({
+          const profileData = await view<
+            Record<string, { profile: NEARSocialUserProfile }>
+          >({
             account: "social.near",
             method: "get",
             args: {
-              keys: [`${accountId}/profile/**`]
+              keys: [`${accountId}/profile/**`],
             },
-            deps: { rpcProvider: getMainnetRpcProvider() }
+            deps: { rpcProvider: getMainnetRpcProvider() },
           });
 
           const profile = profileData?.[accountId]?.profile;
@@ -90,26 +91,28 @@ const app = new Elysia({ prefix: "/api", aot: false })
       return [];
     }
   })
-  .post("/project/create", async ({ headers }) => {
-    const mbMetadata = JSON.parse(headers["mb-metadata"] || "{}");
-    const accountId = mbMetadata?.accountData?.accountId ?? "jgodwill.near";
+  .post("/project/create", async () => {
+    const accountId = key?.accountId;
 
     if (!accountId) {
       return new Response("Account ID is required", { status: 400 });
     }
 
-    try {
-      const result = await CreateOrUpdateProjectHandler(accountId);
+    // try {
+    //   const result = await CreateOrUpdateProjectHandler(accountId);
 
-      if (!result?.success) {
-        return new Response(result?.error || "Unknown error", { status: 500 });
-      }
+    //   if (!result?.success) {
+    //     return new Response(result?.error || "Unknown error", { status: 500 });
+    //   }
 
-      return new Response("Project created successfully", { status: 200 });
-    } catch (error) {
-      console.error("Error creating project:", error);
-      return new Response("Error creating project", { status: 500 });
-    }
+    //   return new Response("Project created successfully", { status: 200 });
+    // } catch (error) {
+    //   console.error("Error creating project:", error);
+    //   return new Response("Error creating project", { status: 500 });
+    // }
+    return {
+      greetings: "I am testing this code",
+    };
   })
   .compile();
 
