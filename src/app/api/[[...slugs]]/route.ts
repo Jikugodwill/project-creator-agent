@@ -66,7 +66,7 @@ const app = new Elysia({ prefix: "/api", aot: false })
             deps: { rpcProvider: getMainnetRpcProvider() },
           });
 
-          const profile = profileData?.[accountId]?.profile;
+          const profile = profileData?.[reg.registrant_id]?.profile;
 
           console.log("5. Profile data for reg:", reg.id, profile);
 
