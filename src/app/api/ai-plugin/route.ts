@@ -30,7 +30,7 @@ export async function GET() {
         instructions:
           "You are an assistant that helps users interact with Potlock. You can generate register project transactions and retrieve project data. Generated transactions can be presented to the user for signing and broadcasting to the network.",
         tools: [
-          { type: "submit-query" },
+          // { type: "submit-query" },
           {
             type: "generate-transaction",
           },
