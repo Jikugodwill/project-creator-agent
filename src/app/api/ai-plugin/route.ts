@@ -30,7 +30,6 @@ export async function GET() {
         instructions:
           "You are an assistant that helps users interact with Potlock. You can generate register project transactions and retrieve project data. Generated transactions can be presented to the user for signing and broadcasting to the network.",
         tools: [
-          // { type: "submit-query" },
           {
             type: "generate-transaction",
           },
@@ -60,76 +59,170 @@ export async function GET() {
               content: {
                 "application/json": {
                   schema: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        id: {
-                          type: "string",
-                          description:
-                            "Unique identifier for the registration.",
-                        },
-                        registrant_id: {
-                          type: "string",
-                          description: "The identifier of the registrant.",
-                        },
-                        list_id: {
-                          type: "integer",
-                          description: "Identifier for the registration list.",
-                        },
-                        status: {
-                          type: "string",
-                          description: "Current registration status.",
-                          enum: [
-                            "Approved",
-                            "Rejected",
-                            "Pending",
-                            "Graylisted",
-                            "Blacklisted",
-                            "Unregistered",
-                          ],
-                        },
-                        submitted_ms: {
-                          type: "integer",
-                          format: "int64",
-                          description:
-                            "Timestamp in milliseconds when the registration was submitted.",
-                        },
-                        updated_ms: {
-                          type: "integer",
-                          format: "int64",
-                          description:
-                            "Timestamp in milliseconds when the registration was last updated.",
-                        },
-                        admin_notes: {
-                          type: "string",
-                          description: "Optional notes added by the admin.",
-                          nullable: true,
-                        },
-                        registrant_notes: {
-                          type: "string",
-                          description:
-                            "Optional notes added by the registrant.",
-                          nullable: true,
-                        },
-                        registered_by: {
-                          type: "string",
-                          description:
-                            "Identifier for the user or system that registered the entity.",
+                    type: "object",
+                    properties: {
+                      id: {
+                        type: "integer",
+                        description: "Unique identifier for the project.",
+                      },
+                      registrant_id: {
+                        type: "string",
+                        description: "The identifier of the registrant.",
+                      },
+                      list_id: {
+                        type: "integer",
+                        description: "Identifier for the registration list.",
+                      },
+                      status: {
+                        type: "string",
+                        description: "Current registration status.",
+                        enum: [
+                          "Approved",
+                          "Rejected",
+                          "Pending",
+                          "Graylisted",
+                          "Blacklisted",
+                          "Unregistered",
+                        ],
+                      },
+                      submitted_ms: {
+                        type: "object",
+                        properties: {
+                          timeAgo: {
+                            type: "string",
+                            description: "Time since submission.",
+                          },
+                          date: {
+                            type: "string",
+                            description: "Submission date.",
+                          },
                         },
                       },
-                      required: [
-                        "id",
-                        "registrant_id",
-                        "list_id",
-                        "status",
-                        "submitted_ms",
-                        "updated_ms",
-                        "registered_by",
-                        "admin_notes",
-                        "registrant_notes",
-                      ],
+                      updated_ms: {
+                        type: "object",
+                        properties: {
+                          timeAgo: {
+                            type: "string",
+                            description: "Time since last update.",
+                          },
+                          date: {
+                            type: "string",
+                            description: "Last update date.",
+                          },
+                        },
+                      },
+                      admin_notes: {
+                        type: "string",
+                        description: "Optional notes added by the admin.",
+                        nullable: true,
+                      },
+                      registrant_notes: {
+                        type: "string",
+                        description: "Optional notes added by the registrant.",
+                        nullable: true,
+                      },
+                      registered_by: {
+                        type: "string",
+                        description:
+                          "Identifier for the user or system that registered the entity.",
+                      },
+                      profile_data: {
+                        type: "object",
+                        properties: {
+                          name: {
+                            type: "string",
+                            description: "Name of the project.",
+                          },
+                          description: {
+                            type: "string",
+                            description: "Description of the project.",
+                          },
+                          linktree: {
+                            type: "object",
+                            properties: {
+                              github: { type: "string" },
+                              website: { type: "string" },
+                              twitter: { type: "string" },
+                              telegram: { type: "string" },
+                            },
+                          },
+                          image: {
+                            type: "object",
+                            properties: {
+                              ipfs_cid: {
+                                type: "string",
+                                description: "IPFS CID for the project image.",
+                              },
+                            },
+                          },
+                          tags: {
+                            type: "object",
+                            additionalProperties: { type: "string" },
+                          },
+                          backgroundImage: {
+                            type: "object",
+                            properties: {
+                              ipfs_cid: {
+                                type: "string",
+                                description:
+                                  "IPFS CID for the background image.",
+                              },
+                            },
+                          },
+                          horizon_tnc: {
+                            type: "string",
+                            description: "Terms and conditions acceptance.",
+                          },
+                          verticals: {
+                            type: "object",
+                            additionalProperties: { type: "string" },
+                          },
+                          product_type: {
+                            type: "object",
+                            additionalProperties: { type: "string" },
+                          },
+                          stage: {
+                            type: "string",
+                            description: "Current stage of the project.",
+                          },
+                          team: {
+                            type: "object",
+                            additionalProperties: { type: "string" },
+                          },
+                          tagline: {
+                            type: "string",
+                            description: "Tagline for the project.",
+                          },
+                          website: {
+                            type: "string",
+                            description: "Website URL for the project.",
+                          },
+                          category: {
+                            type: "object",
+                            properties: {
+                              text: {
+                                type: "string",
+                                description: "Category text.",
+                              },
+                              value: {
+                                type: "string",
+                                description: "Category value.",
+                              },
+                            },
+                          },
+                        },
+                      },
                     },
+                    required: [
+                      "id",
+                      "registrant_id",
+                      "list_id",
+                      "status",
+                      "submitted_ms",
+                      "updated_ms",
+                      "registered_by",
+                      "profile_data",
+                    ],
                   },
                 },
               },
