@@ -61,7 +61,7 @@ const app = new Elysia({ prefix: "/api", aot: false })
             account: "social.near",
             method: "get",
             args: {
-              keys: [`${accountId}/profile/**`],
+              keys: [`${reg.registrant_id}/profile/**`],
             },
             deps: { rpcProvider: getMainnetRpcProvider() },
           });
@@ -98,21 +98,18 @@ const app = new Elysia({ prefix: "/api", aot: false })
       return new Response("Account ID is required", { status: 400 });
     }
 
-    // try {
-    //   const result = await CreateOrUpdateProjectHandler(accountId);
+    try {
+      const result = await CreateOrUpdateProjectHandler(accountId);
 
-    //   if (!result?.success) {
-    //     return new Response(result?.error || "Unknown error", { status: 500 });
-    //   }
+      if (!result?.success) {
+        return new Response(result?.error || "Unknown error", { status: 500 });
+      }
 
-    //   return new Response("Project created successfully", { status: 200 });
-    // } catch (error) {
-    //   console.error("Error creating project:", error);
-    //   return new Response("Error creating project", { status: 500 });
-    // }
-    return {
-      greetings: "I am testing this code",
-    };
+      return new Response("Project created successfully", { status: 200 });
+    } catch (error) {
+      console.error("Error creating project:", error);
+      return new Response("Error creating project", { status: 500 });
+    }
   })
   .compile();
 
